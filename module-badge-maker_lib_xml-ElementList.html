@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: services/dynamic/json-path.js</title>
+    <title>JSDoc: Class: ElementList</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,96 +17,139 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: services/dynamic/json-path.js</h1>
+    <h1 class="page-title">Class: ElementList</h1>
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * @module
- */
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="module-badge-maker_lib_xml.html">badge-maker/lib/xml</a>~</span>ElementList<span class="signature">()</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description"><p>Convenience class. Sometimes it is useful to return an object that behaves
+like an XmlElement but renders multiple XML tags (not wrapped in a <g>).</p></div>
+        
+    
+</header>
 
-import Joi from 'joi'
-import jp from 'jsonpath'
-import { renderDynamicBadge, errorMessages } from '../dynamic-common.js'
-import { InvalidParameter, InvalidResponse } from '../index.js'
+<article>
+    <div class="container-overview">
+    
+        
 
-/**
- * Dynamic service class factory which wraps {@link module:core/base-service/base~BaseService} with support of {@link https://jsonpath.com/|JSONPath}.
- *
- * @param {Function} superclass class to extend
- * @returns {Function} wrapped class
- */
-export default superclass =>
-  class extends superclass {
-    static category = 'dynamic'
-    static defaultBadgeData = { label: 'custom badge' }
+    
+    <h2>Constructor</h2>
+    
 
-    /**
-     * Request data from an upstream API, transform it to JSON and validate against a schema
-     *
-     * @param {object} attrs Refer to individual attrs
-     * @param {Joi} attrs.schema Joi schema to validate the response transformed to JSON
-     * @param {string} attrs.url URL to request
-     * @param {object} [attrs.errorMessages={}] Key-value map of status codes
-     *    and custom error messages e.g: `{ 404: 'package not found' }`.
-     *    This can be used to extend or override the
-     *    [default](https://github.com/badges/shields/blob/master/services/dynamic-common.js#L8)
-     * @returns {object} Parsed response
-     */
-    async fetch({ schema, url, errorMessages }) {
-      throw new Error(
-        `fetch() function not implemented for ${this.constructor.name}`
-      )
-    }
+    
+    <h4 class="name" id="ElementList"><span class="type-signature"></span>new ElementList<span class="signature">()</span><span class="type-signature"></span></h4>
+    
 
-    async handle(namedParams, { url, query: pathExpression, prefix, suffix }) {
-      const data = await this.fetch({
-        schema: Joi.any(),
-        url,
-        errorMessages,
-      })
+    
 
-      // JSONPath only works on objects and arrays.
-      // https://github.com/badges/shields/issues/4018
-      if (typeof data !== 'object') {
-        throw new InvalidResponse({
-          prettyMessage: 'resource must contain an object or array',
-        })
-      }
 
-      let values
-      try {
-        values = jp.query(data, pathExpression)
-      } catch (e) {
-        const { message } = e
-        if (
-          message.startsWith('Lexical error') ||
-          message.startsWith('Parse error') ||
-          message.includes('Unexpected token')
-        ) {
-          throw new InvalidParameter({
-            prettyMessage: 'unparseable jsonpath query',
-          })
-        } else {
-          throw e
-        }
-      }
 
-      if (!values.length) {
-        throw new InvalidResponse({ prettyMessage: 'no result' })
-      }
 
-      return renderDynamicBadge({ value: values, prefix, suffix })
-    }
-  }
-</code></pre>
-        </article>
-    </section>
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="badge-maker_lib_xml.js.html">badge-maker/lib/xml.js</a>, <a href="badge-maker_lib_xml.js.html#line80">line 80</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
