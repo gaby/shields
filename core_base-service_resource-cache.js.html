@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: core/service-test-runner/services-for-title.js</title>
+    <title>JSDoc: Source: core/base-service/resource-cache.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: core/service-test-runner/services-for-title.js</h1>
+    <h1 class="page-title">Source: core/base-service/resource-cache.js</h1>
 
     
 
@@ -30,35 +30,69 @@
  * @module
  */
 
-import difference from 'lodash.difference'
+import { InvalidResponse } from './errors.js'
+import { fetch } from './got.js'
+import checkErrorResponse from './check-error-response.js'
+
+const oneDay = 24 * 3600 * 1000 // 1 day in milliseconds
+
+// Map from URL to { timestamp: last fetch time, data: data }.
+let resourceCache = Object.create(null)
 
 /**
- * Given a pull request title like
- * '[Travis Sonar] Support user token authentication'
- * extract the list of service names in square brackets
- * as an array of strings.
+ * Make a HTTP request using an in-memory cache
  *
- * @param {string} title Pull Request title
- * @returns {string[]} Array of service names
+ * @param {object} attrs Refer to individual attrs
+ * @param {string} attrs.url URL to request
+ * @param {number} attrs.ttl Number of milliseconds to keep cached value for
+ * @param {boolean} [attrs.json=true] True if we expect to parse the response as JSON
+ * @param {Function} [attrs.scraper=buffer => buffer] Function to extract value from the response
+ * @param {object} [attrs.options={}] Options to pass to got
+ * @param {Function} [attrs.requestFetcher=fetch] Custom fetch function
+ * @returns {*} Parsed response
  */
-function servicesForTitle(title) {
-  const bracketed = /\[([^\]]+)\]/g
-
-  const preNormalized = title.toLowerCase()
-
-  let services = []
-  let match
-  while ((match = bracketed.exec(preNormalized))) {
-    const [, bracketed] = match
-    services = services.concat(bracketed.split(' '))
+async function getCachedResource({
+  url,
+  ttl = oneDay,
+  json = true,
+  scraper = buffer => buffer,
+  options = {},
+  requestFetcher = fetch,
+}) {
+  const timestamp = Date.now()
+  const cached = resourceCache[url]
+  if (cached != null &amp;&amp; timestamp - cached.timestamp &lt; ttl) {
+    return cached.data
   }
-  services = services.filter(Boolean).map(service => service.toLowerCase())
 
-  const ignored = ['wip', 'rfc', 'security']
-  return difference(services, ignored)
+  const { buffer } = await checkErrorResponse({})(
+    await requestFetcher(url, options)
+  )
+
+  let reqData
+  if (json) {
+    try {
+      reqData = JSON.parse(buffer)
+    } catch (e) {
+      throw new InvalidResponse({
+        prettyMessage: 'unparseable intermediate json response',
+        underlyingError: e,
+      })
+    }
+  } else {
+    reqData = buffer
+  }
+
+  const data = scraper(reqData)
+  resourceCache[url] = { timestamp, data }
+  return data
 }
 
-export default servicesForTitle
+function clearResourceCache() {
+  resourceCache = Object.create(null)
+}
+
+export { getCachedResource, clearResourceCache }
 </code></pre>
         </article>
     </section>
