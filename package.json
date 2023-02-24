@@ -157,7 +157,7 @@
     "@types/styled-components": "5.1.24",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.15.0",
-    "babel-plugin-inline-react-svg": "^2.0.1",
+    "babel-plugin-inline-react-svg": "^2.0.2",
     "babel-preset-gatsby": "^2.11.1",
     "c8": "^7.11.0",
     "caller": "^1.1.0",
