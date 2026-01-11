@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: core/base-service/service-definitions</title>
+    <title>JSDoc: Source: services/sonar/sonar-spec-helpers.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,177 +17,54 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: core/base-service/service-definitions</h1>
+    <h1 class="page-title">Source: services/sonar/sonar-spec-helpers.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_service-definitions.js.html">core/base-service/service-definitions.js</a>, <a href="core_base-service_service-definitions.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Type Definitions</h3>
-
-        
-                
-<h4 class="name" id="~openApiSchema">openApiSchema</h4>
-
-
-
-
-<div class="description">
-    <p>Joi schema describing the subset of OpenAPI paths we use in this application</p>
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_service-definitions.js.html">core/base-service/service-definitions.js</a>, <a href="core_base-service_service-definitions.js.html#line8">line 8</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://swagger.io/specification/#paths-object">https://swagger.io/specification/#paths-object</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
-    
-
-    
-</article>
-
-</section>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import SonarBase from './sonar-base.js'
+import { openApiQueryParams } from './sonar-helpers.js'
+
+const testAuthConfigOverride = {
+  public: {
+    services: {
+      [SonarBase.auth.serviceKey]: {
+        authorizedOrigins: [
+          openApiQueryParams.find(v => v.name === 'server').example,
+        ],
+      },
+    },
+  },
+}
+
+/**
+ * Returns a legacy sonar api response with desired key and value
+ *
+ * @param {string} key Key for the response value
+ * @param {string|number} val Value to assign to response key
+ * @returns {object} Sonar api response
+ */
+function legacySonarResponse(key, val) {
+  return [
+    {
+      msr: [
+        {
+          key,
+          val,
+        },
+      ],
+    },
+  ]
+}
+
+export { testAuthConfigOverride, legacySonarResponse }
+</code></pre>
+        </article>
+    </section>
 
 
 
