@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: services/contributor-count.js</title>
+    <title>JSDoc: Source: core/base-service/base-jsonl.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: services/contributor-count.js</h1>
+    <h1 class="page-title">Source: core/base-service/base-jsonl.js</h1>
 
     
 
@@ -27,48 +27,87 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * Common functions and utilities for tasks related to contributor count.
- *
  * @module
  */
 
-import { metric } from './text-formatters.js'
+import BaseService from './base.js'
+import { parseJsonl } from './jsonl.js'
 
 /**
- * Determines the color used for a badge based on the contributor count.
- * The color varies from red to bright green as the contributor count increases.
+ * Services which query a JSONL endpoint should extend BaseJsonlService
  *
- * @param {number} contributorCount Contributor count
- * @returns {string} Badge color
+ * @abstract
  */
-function contributorColor(contributorCount) {
-  if (contributorCount > 2) {
-    return 'brightgreen'
-  } else if (contributorCount === 2) {
-    return 'yellow'
-  } else {
-    return 'red'
+class BaseJsonlService extends BaseService {
+  /**
+   * Parse data from a JSONL endpoint
+   *
+   * @param {string} buffer JSONL response from upstream API
+   * @returns {object[]} Parsed response
+   */
+  _parseJsonl(buffer) {
+    return parseJsonl(buffer)
+  }
+
+  static headers = {
+    Accept: 'application/jsonl, application/x-ndjson, text/plain',
+  }
+
+  /**
+   * Request data from an upstream API serving JSONL,
+   * parse it line-by-line and validate each entry against a schema
+   *
+   * @param {object} attrs Refer to individual attrs
+   * @param {Joi} attrs.schema Joi schema to validate each response line against
+   * @param {string} attrs.url URL to request
+   * @param {object} [attrs.options={}] Options to pass to got. See
+   *    [documentation](https://github.com/sindresorhus/got/blob/main/documentation/2-options.md)
+   * @param {object} [attrs.httpErrors={}] Key-value map of status codes
+   *    and custom error messages e.g: `{ 404: 'package not found' }`.
+   *    This can be used to extend or override the
+   *    [default](https://github.com/badges/shields/blob/master/core/base-service/check-error-response.js#L5)
+   * @param {object} [attrs.systemErrors={}] Key-value map of got network exception codes
+   *    and an object of params to pass when we construct an Inaccessible exception object
+   *    e.g: `{ ECONNRESET: { prettyMessage: 'connection reset' } }`.
+   *    See {@link https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md#errorcodes got error codes}
+   *    for allowed keys
+   *    and {@link module:core/base-service/errors~RuntimeErrorProps} for allowed values
+   * @param {number[]} [attrs.logErrors=[429]] An array of http error codes
+   *    that will be logged (to sentry, if configured).
+   * @param {string} [attrs.prettyErrorMessage='invalid response data']
+   *    Error message to surface when schema validation fails.
+   * @returns {object[]} Parsed response
+   * @see https://github.com/sindresorhus/got/blob/main/documentation/2-options.md
+   */
+  async _requestJsonl({
+    schema,
+    url,
+    options = {},
+    httpErrors = {},
+    systemErrors = {},
+    logErrors = [429],
+    prettyErrorMessage = 'invalid response data',
+  }) {
+    const mergedOptions = {
+      ...{ headers: this.constructor.headers },
+      ...options,
+    }
+    const { buffer } = await this._request({
+      url,
+      options: mergedOptions,
+      httpErrors,
+      systemErrors,
+      logErrors,
+    })
+    const jsonl = this._parseJsonl(buffer)
+
+    return jsonl.map(line =>
+      this.constructor._validate(line, schema, { prettyErrorMessage }),
+    )
   }
 }
 
-/**
- * Handles rendering concerns of badges that display contributor count.
- * Determines the message and color of the badge according to the contributor count.
- *
- * @param {object} attrs Refer to individual attributes
- * @param {string} [attrs.label] If provided then badge label is set to this value
- * @param {number} attrs.contributorCount Contributor count
- * @returns {object} Badge with label, message and color properties
- */
-function renderContributorBadge({ label, contributorCount }) {
-  return {
-    label,
-    message: metric(contributorCount),
-    color: contributorColor(contributorCount),
-  }
-}
-
-export { contributorColor, renderContributorBadge }
+export default BaseJsonlService
 </code></pre>
         </article>
     </section>
